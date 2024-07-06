@@ -1,0 +1,20 @@
+# Сборка 2-х контейнеров, БД, Django проект
+version: "3.8"
+
+services:
+
+  mongo:
+    image: mongo:5.0.28-rc0-focal
+    container_name: mongodb
+    ports:
+      - 27017:27017
+    volumes:
+      - ${MONGO_DATA_PATH}:/data/db
+
+  report:
+    build: .
+    container_name: reports
+    network_mode: "host"
+    command: python report_project/manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - mongo

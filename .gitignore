@@ -4,3 +4,4 @@ __pycache__
 .vscode
 .ruff_cache
 source
+TODO.txt

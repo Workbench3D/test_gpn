@@ -1,2 +1,5 @@
 # django
 Django==4.2.13
+
+# env
+python-dotenv==1.0.1
