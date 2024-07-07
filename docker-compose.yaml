@@ -4,10 +4,10 @@ version: "3.8"
 services:
 
   mongo:
-    image: mongo:5.0.28-rc0-focal
+    image: mongo:8.0.0-rc11
     container_name: mongodb
     ports:
-      - 27017:27017
+      - "27017:27017"
     volumes:
       - ${MONGO_DATA_PATH}:/data/db
 
