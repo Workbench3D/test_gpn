@@ -1,0 +1,9 @@
+Dockerfile
+docker-compose.yaml
+env
+TODO.txt
+.gitignore
+source
+__pycache__
+.vscode
+.ruff_cache

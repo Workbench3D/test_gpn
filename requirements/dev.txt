@@ -6,3 +6,6 @@ ruff==0.5.1
 
 # env
 python-dotenv==1.0.1
+
+# DB
+psycopg2-binary==2.9.9

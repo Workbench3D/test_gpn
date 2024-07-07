@@ -10,16 +10,17 @@ services:
       - ./report_project/.env
     # внутри используется порт 5432 а пробрасывается на порт 5433
     ports:
-      - "5433:5432"
+      - 5433:5432
     volumes:
       - ${DATA_PATH}:/var/lib/postgresql/data
 
-  # report:
-  #   build: .
-  #   container_name: reports
-  #   network_mode: "host"
-  #   env_file:
-  #     - ./report_project/.env
-  #   command: python report_project/manage.py runserver 0.0.0.0:8000
-  #   depends_on:
-  #     - db
+  report:
+    build: .
+    container_name: reports
+    env_file:
+      - ./report_project/.env
+    command: python report_project/manage.py runserver 0.0.0.0:8000
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
