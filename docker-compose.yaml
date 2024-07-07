@@ -3,18 +3,23 @@ version: "3.8"
 
 services:
 
-  mongo:
-    image: mongo:8.0.0-rc11
-    container_name: mongodb
+  db:
+    image: postgres:14.7-alpine
+    container_name: db_posgresql
+    env_file: 
+      - ./report_project/.env
+    # внутри используется порт 5432 а пробрасывается на порт 5433
     ports:
-      - "27017:27017"
+      - "5433:5432"
     volumes:
-      - ${MONGO_DATA_PATH}:/data/db
+      - ${DATA_PATH}:/var/lib/postgresql/data
 
-  report:
-    build: .
-    container_name: reports
-    network_mode: "host"
-    command: python report_project/manage.py runserver 0.0.0.0:8000
-    depends_on:
-      - mongo
+  # report:
+  #   build: .
+  #   container_name: reports
+  #   network_mode: "host"
+  #   env_file:
+  #     - ./report_project/.env
+  #   command: python report_project/manage.py runserver 0.0.0.0:8000
+  #   depends_on:
+  #     - db
