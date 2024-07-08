@@ -5,7 +5,7 @@ services:
 
   db:
     image: postgres:14.7-alpine
-    container_name: db_posgresql
+    container_name: db_postgres
     env_file: 
       - ./report_project/.env
     # внутри используется порт 5432 а пробрасывается на порт 5433
