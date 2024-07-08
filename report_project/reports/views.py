@@ -6,7 +6,6 @@ from .models import Order
 
 from .forms import UploadFileForm
 from django.shortcuts import render, redirect
-from django.contrib import messages
 
 
 def index(request):
@@ -32,11 +31,11 @@ def handle_uploaded_file(file, *args, sheet_name="Data"):
     # Преобразуем данные DataFrame в список списков
     data_list = df.values.tolist()
     for i in data_list:
-        i[4] = datetime.strptime(i[4], "%d.%m.%Y %H:%M:%S")
-        if i[5] is not None:
-            i[5] = datetime.strptime(i[5], "%d.%m.%Y %H:%M:%S")
-        if i[6] == "Обработка не завершена":
-            i[6] = None
+        i[3] = datetime.strptime(i[3], "%d.%m.%Y %H:%M:%S")
+        if i[4] is not None:
+            i[4] = datetime.strptime(i[4], "%d.%m.%Y %H:%M:%S")
+        if i[5] == "Обработка не завершена":
+            i[5] = None
     return data_list
 
 
@@ -49,7 +48,6 @@ def upload_file(request):
                 file,
                 "Номер заявки",
                 "Состояние заявки",
-                "Согласование",
                 "Автор заявки",
                 "Дата создания заявки",
                 "Дата окончания обработки",
@@ -60,12 +58,11 @@ def upload_file(request):
                 Order(
                     order_number=i[0],
                     order_status=i[1],
-                    approval=i[2],
-                    order_author=i[3],
-                    creation_date=i[4],
-                    processing_end_date=i[5],
-                    processing_duration_hours=i[6],
-                    package_id=i[7],
+                    order_author=i[2],
+                    creation_date=i[3],
+                    processing_end_date=i[4],
+                    processing_duration_hours=i[5],
+                    package_id=i[6]
                 )
                 for i in dowload_data
             ]

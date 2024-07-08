@@ -1,11 +1,9 @@
 from django.db import models
-from django.utils import timezone
 
 
 class Order(models.Model):
     order_number = models.CharField(max_length=100, verbose_name="Номер заявки")
     order_status = models.CharField(max_length=100, verbose_name="Состояние заявки")
-    approval = models.CharField(max_length=100, verbose_name="Согласование")
     order_author = models.CharField(max_length=100, verbose_name="Автор заявки")
     creation_date = models.DateTimeField(verbose_name="Дата создания заявки")
     processing_end_date = models.DateTimeField(
