@@ -1,0 +1,29 @@
+{% extends "layout/basic.html" %}
+{% block content %}
+
+<head>
+    <title>Отчет</title>
+</head>
+
+<body>
+    <h1>Отчет</h1>
+    <form method="get">
+        {{ form }}
+        <button type="submit">Фильтровать</button>
+    </form>
+    <table>
+        <tr>
+            {% for item in context.title %}
+            <td>{{ item }}</td>
+            {% endfor %}
+        </tr>
+        {% for desc, period_date, all_date in context.content %}
+        <tr>
+            <td>{{ desc }}</td>
+            <td>{{ period_date }}</td>
+            <td>{{ all_date }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+{% endblock %}
