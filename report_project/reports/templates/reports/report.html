@@ -1,29 +1,28 @@
 {% extends "layout/basic.html" %}
 {% block content %}
-
-<head>
-    <title>Отчет</title>
-</head>
-
-<body>
+<div class="container-xxl">
     <h1>Отчет</h1>
     <form method="get">
         {{ form }}
         <button type="submit">Фильтровать</button>
     </form>
-    <table>
-        <tr>
-            {% for item in context.title %}
-            <td>{{ item }}</td>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                {% for item in context.title %}
+                <th>{{ item }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for desc, period_date, all_date in context.content %}
+            <tr>
+                <td>{{ desc }}</td>
+                <td>{{ period_date }}</td>
+                <td>{{ all_date }}</td>
+            </tr>
             {% endfor %}
-        </tr>
-        {% for desc, period_date, all_date in context.content %}
-        <tr>
-            <td>{{ desc }}</td>
-            <td>{{ period_date }}</td>
-            <td>{{ all_date }}</td>
-        </tr>
-        {% endfor %}
+          </tbody>
     </table>
-</body>
+</div>
 {% endblock %}

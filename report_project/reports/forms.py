@@ -3,7 +3,7 @@ from django import forms
 
 
 class UploadFileForm(forms.Form):
-    file = forms.FileField()
+    file = forms.FileField(label="Файл")
 
     def clean_file(self):
         file = self.cleaned_data.get("file")
@@ -22,8 +22,10 @@ class DateRangeForm(forms.Form):
     start_date = forms.DateField(
         initial=delta.strftime("%Y-%m-%d"),
         widget=forms.TextInput(attrs={"type": "date"}),
+        label="С",
     )
     end_date = forms.DateField(
         initial=now.strftime("%Y-%m-%d"),
         widget=forms.TextInput(attrs={"type": "date"}),
+        label="По",
     )

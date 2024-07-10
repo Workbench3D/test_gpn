@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect
 
 
 def index(request) -> HttpResponse:
-    return HttpResponse("index")
+    return render(request, "reports/index.html")
 
 
 def handle_uploaded_file(file, *args, sheet_name="Data") -> list:

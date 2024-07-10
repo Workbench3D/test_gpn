@@ -1,15 +1,11 @@
-
 {% extends "layout/basic.html" %}
 {% block content %}
-<head>
-    <title>Загрузка файла</title>
-</head>
-<body>
+<div class="container-xxl">
     <h1>Загрузка файла Excel</h1>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Загрузить</button>
     </form>
-</body>
+</div>
 {% endblock %}

@@ -1,5 +1,41 @@
 <!DOCTYPE html>
-<html>
+{% load static %}
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{% static "bootstrap-5.2.3/css/bootstrap.css" %}" />
+  <link rel="stylesheet" href="{% static "bootstrap-5.2.3/css/style.css" %}" />
+  <title>Сервис отчетов</title>
+</head>
+<body style="background-color: #F2F2F2">
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark padding">
+      <div class="container-xxl">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01"
+          aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+          <a class="navbar-brand" href="{% url 'index' %}">Домой</a>
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'upload_file' %}">Загрузка файла данных</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'get_report' %}">Получение отчета</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <section>
     {% block content %}
     {% endblock %}
+  </section>
+  <script src="{% static "bootstrap-5.2.3/js/bootstrap.js" %}"></script>
+</body>
+
 </html>
