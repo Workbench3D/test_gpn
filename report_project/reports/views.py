@@ -1,42 +1,84 @@
-from datetime import datetime, timedelta
-from django.http import HttpResponse
 import pandas as pd
-
+from datetime import datetime, timedelta
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from .forms import UploadFileForm, DateRangeForm
 from .models import Order
 
-from .forms import UploadFileForm, DateRangeForm
-from django.shortcuts import render, redirect
+
+class FileHandler:
+    """Класс для обработки файлов, чтения данных из Excel файла."""
+
+    def __init__(self, file, sheet_name="Data"):
+        self.file = file
+        self.sheet_name = sheet_name
+
+    def read_excel(self):
+        return pd.read_excel(self.file, sheet_name=self.sheet_name)
 
 
-def index(request) -> HttpResponse:
-    return render(request, "reports/index.html")
+class DataExtractor:
+    """Класс для извлечения необходимых столбцов из DataFrame."""
+
+    def __init__(self, dataframe):
+        self.dataframe = dataframe
+
+    def extract_columns(self, *args):
+        if args:
+            self.dataframe = self.dataframe[list(args)]
+        return self.dataframe
 
 
-def handle_uploaded_file(file, *args, sheet_name="Data") -> list:
-    """
-    Читает определенные столбцы из Excel файла и формирует из них список.
+class DataTransformer:
+    """Класс для преобразования данных из DataFrame в нужный формат."""
 
-    :file: загруженый Excel файл
-    :sheet_name: имя листа
-    :args: названия столбцов для выбора
-    """
-    # Читаем данные с указанного листа Excel файла
-    df = pd.read_excel(file, sheet_name=sheet_name)
-    df = df.where(pd.notnull(df), None)
+    @staticmethod
+    def transform(data_list, idx_start_date, idx_end_date, idx_duration):
+        for i in data_list:
+            i[idx_start_date] = datetime.strptime(
+                i[idx_start_date], "%d.%m.%Y %H:%M:%S"
+            )
+            if i[idx_end_date] is not None:
+                i[idx_end_date] = datetime.strptime(
+                    i[idx_end_date], "%d.%m.%Y %H:%M:%S"
+                )
+            if i[idx_duration] == "Обработка не завершена":
+                i[idx_duration] = None
+        return data_list
 
-    # Если указаны столбцы, выбираем их
-    if args:
-        df = df[list(args)]
 
-    # Преобразуем данные DataFrame в список списков
+class OrderCreator:
+    """Класс для создания объектов Order из списка данных."""
+
+    @staticmethod
+    def create_orders(data_list):
+        return [
+            Order(
+                order_number=num,
+                order_state=state,
+                order_status=stat,
+                order_author=author,
+                creation_date=date,
+                processing_end_date=end_date,
+                processing_duration_hours=duration,
+                package_id=id,
+            )
+            for num, state, stat, author, date, end_date, duration, id in data_list
+        ]
+
+
+def handle_uploaded_file(file, *args, sheet_name="Data"):
+    file_handler = FileHandler(file, sheet_name)
+    df = file_handler.read_excel().where(pd.notnull(file_handler.read_excel()), None)
+
+    data_extractor = DataExtractor(df)
+    df = data_extractor.extract_columns(*args)
+
     data_list = df.values.tolist()
-    for i in data_list:
-        i[4] = datetime.strptime(i[4], "%d.%m.%Y %H:%M:%S")
-        if i[5] is not None:
-            i[5] = datetime.strptime(i[5], "%d.%m.%Y %H:%M:%S")
-        if i[6] == "Обработка не завершена":
-            i[6] = None
-    return data_list
+    data_transformer = DataTransformer()
+    return data_transformer.transform(
+        data_list, idx_start_date=4, idx_end_date=5, idx_duration=6
+    )
 
 
 def upload_file(request):
@@ -44,7 +86,7 @@ def upload_file(request):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES["file"]
-            dowload_data = handle_uploaded_file(
+            download_data = handle_uploaded_file(
                 file,
                 "Номер заявки",
                 "Состояние заявки",
@@ -55,62 +97,61 @@ def upload_file(request):
                 "Время от создания заявки до конца обработки (в часах)",
                 "ID пакета",
             )
-            order = [
-                Order(
-                    order_number=i[0],
-                    order_state=i[1],
-                    order_status=i[2],
-                    order_author=i[3],
-                    creation_date=i[4],
-                    processing_end_date=i[5],
-                    processing_duration_hours=i[6],
-                    package_id=i[7],
-                )
-                for i in dowload_data
-            ]
-            Order.objects.bulk_create(order)
+            orders = OrderCreator.create_orders(download_data)
+            Order.objects.bulk_create(orders)
             return redirect("index")
     else:
         form = UploadFileForm()
     return render(request, "reports/upload.html", {"form": form})
 
 
-def get_orders(orders: Order) -> dict:
-    total_apps = orders.count()
-    total_dups = orders.filter(order_state__contains="Дубликат заявки").count()
-    new_apps = orders.filter(order_state__contains="ДОБАВЛЕНИЕ").count()
-    extension_apps = orders.filter(order_state__contains="РАСШИРЕНИЕ").count()
-    completed_apps = orders.filter(order_status__contains="Обработка завершена").count()
-    returned_apps = orders.filter(
-        order_status__contains="Возвращена на уточнение"
-    ).count()
-    processing_apps = orders.filter(
-        order_status__contains="Отправлена в обработку"
-    ).count()
-    total_packages = orders.values("package_id").distinct().count()
-    total_users = orders.values("order_author").distinct().count()
+class OrderStatistics:
+    """Класс для вычисления статистики по заявкам."""
 
-    result = [
-        total_apps,
-        total_dups,
-        new_apps,
-        extension_apps,
-        completed_apps,
-        returned_apps,
-        processing_apps,
-        total_packages,
-        total_users,
-    ]
-    return result
+    def __init__(self, orders):
+        self.orders = orders
+
+    def calculate(self):
+        total_apps = self.orders.count()
+        total_dups = self.orders.filter(order_state__contains="Дубликат заявки").count()
+        new_apps = self.orders.filter(order_state__contains="ДОБАВЛЕНИЕ").count()
+        extension_apps = self.orders.filter(order_state__contains="РАСШИРЕНИЕ").count()
+        completed_apps = self.orders.filter(
+            order_status__contains="Обработка завершена"
+        ).count()
+        returned_apps = self.orders.filter(
+            order_status__contains="Возвращена на уточнение"
+        ).count()
+        processing_apps = self.orders.filter(
+            order_status__contains="Отправлена в обработку"
+        ).count()
+        total_packages = self.orders.values("package_id").distinct().count()
+        total_users = self.orders.values("order_author").distinct().count()
+
+        return [
+            total_apps,
+            total_dups,
+            new_apps,
+            extension_apps,
+            completed_apps,
+            returned_apps,
+            processing_apps,
+            total_packages,
+            total_users,
+        ]
 
 
-def get_report(request) -> HttpResponse:
+def get_orders(orders):
+    order_statistics = OrderStatistics(orders)
+    return order_statistics.calculate()
+
+
+def get_report(request):
     now = datetime.now()
     delta = now - timedelta(days=360)
 
     orders = Order.objects.all()
-    orders_date = orders.filter(creation_date__gte=delta)
-    orders_date = orders_date.filter(creation_date__lte=now)
+    orders_date = orders.filter(creation_date__gte=delta, creation_date__lte=now)
     form = DateRangeForm(request.GET or None)
 
     if form.is_valid():
@@ -137,3 +178,7 @@ def get_report(request) -> HttpResponse:
     content = zip(desc, get_orders(orders_date), get_orders(orders))
     context = {"title": title, "content": content}
     return render(request, "reports/report.html", {"form": form, "context": context})
+
+
+def index(request) -> HttpResponse:
+    return render(request, "reports/index.html")

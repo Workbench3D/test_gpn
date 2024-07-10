@@ -4,6 +4,9 @@ Django==4.2.13
 # linter
 ruff==0.5.1
 
+# coverage
+coverage==7.5.4
+
 # env
 python-dotenv==1.0.1
 

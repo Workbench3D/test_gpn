@@ -7,3 +7,4 @@ source
 __pycache__
 .vscode
 .ruff_cache
+.coverage
